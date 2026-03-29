@@ -37,6 +37,298 @@ This will run the service at port 5050 with all the default configs
 
 _(Docker required, obviously)_
 
+---
+
+## ⚙️ Parameters & Voice Reference
+
+### `/v1/audio/speech` — Request Parameters
+
+| Parameter | Type | Required | Default | Description |
+|---|---|---|---|---|
+| `input` | string | ✅ | — | Text to synthesize (up to 4,096 characters) |
+| `model` | string | ❌ | `tts-1` | TTS model identifier — see [Models](#models) |
+| `voice` | string | ❌ | `en-US-AvaNeural` | OpenAI alias or direct edge-tts voice name — see [Voices](#voices) |
+| `response_format` | string | ❌ | `mp3` | Audio output format — see [Audio Formats](#audio-formats) |
+| `speed` | number | ❌ | `1.0` | Speech rate — `0.25` (slowest) to `4.0` (fastest) |
+| `stream_format` | string | ❌ | `audio` | `"audio"` for raw binary stream, `"sse"` for Server-Sent Events |
+
+---
+
+### Models
+
+| Model ID | Description |
+|---|---|
+| `tts-1` | Text-to-speech v1 (standard) |
+| `tts-1-hd` | Text-to-speech v1 HD |
+| `gpt-4o-mini-tts` | GPT-4o mini TTS |
+
+> All three models use the same underlying Edge TTS engine. The model field is accepted for OpenAI API drop-in compatibility but does not change voice quality.
+
+---
+
+### Voices
+
+#### OpenAI-Compatible Alias Voices
+
+These short names are drop-in replacements for the standard OpenAI TTS voice names:
+
+| Alias | Mapped Edge-TTS Voice | Gender | Locale |
+|---|---|---|---|
+| `alloy` | `en-US-JennyNeural` | Female | English (US) |
+| `ash` | `en-US-AndrewNeural` | Male | English (US) |
+| `ballad` | `en-GB-ThomasNeural` | Male | English (UK) |
+| `coral` | `en-AU-NatashaNeural` | Female | English (AU) |
+| `echo` | `en-US-GuyNeural` | Male | English (US) |
+| `fable` | `en-GB-SoniaNeural` | Female | English (UK) |
+| `nova` | `en-US-AriaNeural` | Female | English (US) |
+| `onyx` | `en-US-EricNeural` | Male | English (US) |
+| `sage` | `en-US-JennyNeural` | Female | English (US) |
+| `shimmer` | `en-US-EmmaNeural` | Female | English (US) |
+| `verse` | `en-US-BrianNeural` | Male | English (US) |
+
+#### Direct Edge-TTS Voices
+
+You can bypass the alias mapping and use any Edge-TTS voice directly by passing its full name as `voice`. Voice names follow the pattern **`{locale}-{Name}Neural`**:
+
+```bash
+# Japanese male voice
+"voice": "ja-JP-KeitaNeural"
+
+# Spanish (Mexico) male voice
+"voice": "es-MX-JorgeNeural"
+
+# French (France) female voice
+"voice": "fr-FR-DeniseNeural"
+```
+
+Use the **`GET /v1/voices?language={locale}`** endpoint to retrieve voices for a specific locale, **`GET /v1/voices/all`** for the complete list, or browse and play samples at [tts.travisvn.com](https://tts.travisvn.com).
+
+#### Notable English Voices
+
+| Voice | Gender | Locale |
+|---|---|---|
+| `en-US-AvaNeural` *(server default)* | Female | English (US) |
+| `en-US-AriaNeural` | Female | English (US) |
+| `en-US-JennyNeural` | Female | English (US) |
+| `en-US-EmmaNeural` | Female | English (US) |
+| `en-US-GuyNeural` | Male | English (US) |
+| `en-US-AndrewNeural` | Male | English (US) |
+| `en-US-EricNeural` | Male | English (US) |
+| `en-US-BrianNeural` | Male | English (US) |
+| `en-US-ChristopherNeural` | Male | English (US) |
+| `en-GB-SoniaNeural` | Female | English (UK) |
+| `en-GB-LibbyNeural` | Female | English (UK) |
+| `en-GB-RyanNeural` | Male | English (UK) |
+| `en-AU-NatashaNeural` | Female | English (AU) |
+| `en-AU-WilliamNeural` | Male | English (AU) |
+| `en-CA-ClaraNeural` | Female | English (CA) |
+| `en-CA-LiamNeural` | Male | English (CA) |
+| `en-IN-NeerjaNeural` | Female | English (IN) |
+| `en-IN-PrabhatNeural` | Male | English (IN) |
+
+---
+
+### Supported Languages & Locales
+
+Edge TTS supports **100+ locales** across 50+ languages. Each locale includes at least one male and one female voice.
+
+#### English
+
+| Locale | Region |
+|---|---|
+| `en-US` | United States |
+| `en-GB` | United Kingdom |
+| `en-AU` | Australia |
+| `en-CA` | Canada |
+| `en-IN` | India |
+| `en-IE` | Ireland |
+| `en-NZ` | New Zealand |
+| `en-SG` | Singapore |
+| `en-HK` | Hong Kong SAR |
+| `en-PH` | Philippines |
+| `en-ZA` | South Africa |
+| `en-NG` | Nigeria |
+| `en-KE` | Kenya |
+| `en-TZ` | Tanzania |
+
+#### Spanish
+
+| Locale | Region |
+|---|---|
+| `es-ES` | Spain |
+| `es-MX` | Mexico |
+| `es-US` | United States |
+| `es-AR` | Argentina |
+| `es-CO` | Colombia |
+| `es-CL` | Chile |
+| `es-PE` | Peru |
+| `es-VE` | Venezuela |
+| `es-BO` `es-CR` `es-CU` `es-DO` `es-EC` `es-GQ` `es-GT` `es-HN` `es-NI` `es-PA` `es-PR` `es-PY` `es-SV` `es-UY` | Other Latin America |
+
+#### Major World Languages
+
+| Locale | Language |
+|---|---|
+| `fr-FR` | French (France) |
+| `fr-CA` | French (Canada) |
+| `fr-BE` | French (Belgium) |
+| `fr-CH` | French (Switzerland) |
+| `de-DE` | German (Germany) |
+| `de-AT` | German (Austria) |
+| `de-CH` | German (Switzerland) |
+| `it-IT` | Italian |
+| `pt-BR` | Portuguese (Brazil) |
+| `pt-PT` | Portuguese (Portugal) |
+| `ja-JP` | Japanese |
+| `ko-KR` | Korean |
+| `zh-CN` | Chinese (Mandarin, Simplified) |
+| `zh-TW` | Chinese (Taiwanese Mandarin, Traditional) |
+| `zh-HK` | Chinese (Cantonese, Traditional) |
+| `ru-RU` | Russian |
+| `ar-AE` `ar-BH` `ar-DZ` `ar-EG` `ar-IQ` `ar-JO` `ar-KW` `ar-LB` `ar-LY` `ar-MA` `ar-OM` `ar-QA` `ar-SA` `ar-SY` `ar-TN` `ar-YE` | Arabic (16 regions) |
+| `hi-IN` | Hindi (India) |
+| `tr-TR` | Turkish |
+| `pl-PL` | Polish |
+| `nl-NL` | Dutch (Netherlands) |
+| `nl-BE` | Dutch (Belgium) |
+| `sv-SE` | Swedish |
+| `nb-NO` | Norwegian Bokmål |
+| `da-DK` | Danish |
+| `fi-FI` | Finnish |
+| `cs-CZ` | Czech |
+| `sk-SK` | Slovak |
+| `hu-HU` | Hungarian |
+| `ro-RO` | Romanian |
+| `uk-UA` | Ukrainian |
+| `bg-BG` | Bulgarian |
+| `hr-HR` | Croatian |
+| `el-GR` | Greek |
+| `he-IL` | Hebrew |
+| `id-ID` | Indonesian |
+| `ms-MY` | Malay |
+| `th-TH` | Thai |
+| `vi-VN` | Vietnamese |
+
+#### Additional Languages
+
+| Locale | Language |
+|---|---|
+| `af-ZA` | Afrikaans (South Africa) |
+| `am-ET` | Amharic (Ethiopia) |
+| `as-IN` | Assamese (India) |
+| `az-AZ` | Azerbaijani (Azerbaijan) |
+| `bn-BD` | Bangla (Bangladesh) |
+| `bn-IN` | Bengali (India) |
+| `bs-BA` | Bosnian (Bosnia & Herzegovina) |
+| `ca-ES` | Catalan |
+| `cy-GB` | Welsh (UK) |
+| `et-EE` | Estonian |
+| `eu-ES` | Basque |
+| `fa-IR` | Persian (Iran) |
+| `fil-PH` | Filipino (Philippines) |
+| `ga-IE` | Irish (Ireland) |
+| `gl-ES` | Galician |
+| `gu-IN` | Gujarati (India) |
+| `hy-AM` | Armenian |
+| `is-IS` | Icelandic |
+| `iu-Cans-CA` | Inuktitut (Syllabics, Canada) |
+| `iu-Latn-CA` | Inuktitut (Latin, Canada) |
+| `jv-ID` | Javanese (Indonesia) |
+| `ka-GE` | Georgian |
+| `kk-KZ` | Kazakh |
+| `km-KH` | Khmer (Cambodia) |
+| `kn-IN` | Kannada (India) |
+| `lo-LA` | Lao (Laos) |
+| `lt-LT` | Lithuanian |
+| `lv-LV` | Latvian |
+| `mk-MK` | Macedonian |
+| `ml-IN` | Malayalam (India) |
+| `mn-MN` | Mongolian |
+| `mr-IN` | Marathi (India) |
+| `mt-MT` | Maltese |
+| `my-MM` | Burmese (Myanmar) |
+| `ne-NP` | Nepali |
+| `or-IN` | Odia (India) |
+| `pa-IN` | Punjabi (India) |
+| `ps-AF` | Pashto (Afghanistan) |
+| `si-LK` | Sinhala (Sri Lanka) |
+| `sl-SI` | Slovenian |
+| `so-SO` | Somali |
+| `sq-AL` | Albanian |
+| `sr-RS` | Serbian (Cyrillic) |
+| `sr-Latn-RS` | Serbian (Latin) |
+| `su-ID` | Sundanese (Indonesia) |
+| `sw-KE` | Kiswahili (Kenya) |
+| `sw-TZ` | Kiswahili (Tanzania) |
+| `ta-IN` `ta-LK` `ta-MY` `ta-SG` | Tamil (India, Sri Lanka, Malaysia, Singapore) |
+| `te-IN` | Telugu (India) |
+| `ur-IN` | Urdu (India) |
+| `ur-PK` | Urdu (Pakistan) |
+| `uz-UZ` | Uzbek |
+| `wuu-CN` | Chinese (Wu, Simplified) |
+| `yue-CN` | Chinese (Cantonese, Simplified) |
+| `zh-CN-liaoning` | Chinese (Northeastern Mandarin) |
+| `zh-CN-shaanxi` | Chinese (Zhongyuan Mandarin, Shaanxi) |
+| `zh-CN-sichuan` | Chinese (Southwestern Mandarin) |
+| `zu-ZA` | Zulu (South Africa) |
+
+> For the complete, live list of voices for any locale, call `GET /v1/voices?language={locale}` or visit [tts.travisvn.com](https://tts.travisvn.com).
+
+---
+
+### Audio Formats
+
+| Format | MIME Type | Notes |
+|---|---|---|
+| `mp3` *(default)* | `audio/mpeg` | Universally compatible — **no ffmpeg required** |
+| `opus` | `audio/ogg; codec=opus` | Low-latency streaming — requires ffmpeg |
+| `aac` | `audio/aac` | Good compression, widely supported — requires ffmpeg |
+| `flac` | `audio/flac` | Lossless audio — requires ffmpeg |
+| `wav` | `audio/wav` | Uncompressed PCM — requires ffmpeg |
+| `pcm` | `audio/pcm` | Raw 16-bit PCM samples at 24 kHz — requires ffmpeg |
+
+> Only `mp3` works without ffmpeg. For all other formats, use the `latest-ffmpeg` Docker image tag:
+> ```bash
+> docker run -d -p 5050:5050 travisvn/openai-edge-tts:latest-ffmpeg
+> ```
+
+---
+
+### Speed
+
+The `speed` parameter accepts a float from **`0.25`** to **`4.0`** (default `1.0`). It maps to the Edge TTS SSML `<prosody rate>` attribute:
+
+| `speed` | SSML `rate` | Effect |
+|---|---|---|
+| `0.25` | `-75%` | Very slow |
+| `0.5` | `-50%` | Half speed |
+| `0.75` | `-25%` | Slightly slow |
+| `1.0` | `+0%` | Normal (default) |
+| `1.5` | `+50%` | Faster |
+| `2.0` | `+100%` | Double speed |
+| `4.0` | `+300%` | Maximum speed |
+
+---
+
+### Server Environment Variables
+
+Set these in a `.env` file or pass them as container environment variables:
+
+| Variable | Default | Description |
+|---|---|---|
+| `API_KEY` | `your_api_key_here` | Bearer token clients must send. Any string works — no real key needed |
+| `PORT` | `5050` | Port the server listens on |
+| `DEFAULT_VOICE` | `en-US-AvaNeural` | Voice used when the request omits `voice` |
+| `DEFAULT_RESPONSE_FORMAT` | `mp3` | Format used when the request omits `response_format` |
+| `DEFAULT_SPEED` | `1.0` | Speed used when the request omits `speed` |
+| `DEFAULT_LANGUAGE` | `en-US` | Language hint for text pre-processing |
+| `REQUIRE_API_KEY` | `True` | Set to `False` to disable Bearer token authentication |
+| `REMOVE_FILTER` | `False` | Set to `True` to skip Markdown/emoji cleaning on the input text |
+| `EXPAND_API` | `True` | Enable extra endpoint aliases (ElevenLabs & Azure AI Speech compatible routes) |
+| `DETAILED_ERROR_LOGGING` | `True` | Include full stack traces in server error logs |
+
+---
+
 ## Setup
 
 ### Prerequisites
